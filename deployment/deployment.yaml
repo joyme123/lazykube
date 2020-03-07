@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lazykube
+  labels:
+    app: lazykube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lazykube
+  template:
+    metadata:
+      labels:
+        app: lazykube
+    spec:
+      containers:
+        - name: lazykube
+          image: joyme/lazykube:0.1-a6e5d94
+          imagePullPolicy: Always
+          args:
+            - -tlsCertFile=/etc/webhook/certs/cert.pem
+            - -tlsKeyFile=/etc/webhook/certs/key.pem
+            - 2>&1
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /etc/webhook/certs
+              readOnly: true
+          resources:
+              limits:
+                cpu: "1"
+                memory: "200Mi"
+              requests:
+                cpu: "0.5"
+                memory: "100Mi"
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: lazykube-webhook-certs
+      
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lazykube-webhook-svc
+  labels:
+    app: lazykube
+spec:
+  ports:
+  - port: 443
+    targetPort: 443
+  selector:
+    app: lazykube

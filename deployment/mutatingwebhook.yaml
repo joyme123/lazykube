@@ -1,0 +1,22 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: lazykube-webhook-cfg
+  labels:
+    app: lazykube
+webhooks:
+  - name: lazykube
+    clientConfig:
+      service:
+        name: lazykube-webhook-svc
+        namespace: default
+        path: "/mutate"
+      caBundle: ${CA_BUNDLE}
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+    # namespaceSelector:
+    #   matchLabels:
+    #     sidecar-injector: enabled

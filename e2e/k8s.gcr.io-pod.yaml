@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-k8s-gcr
+  labels:
+    name: myapp-k8s-gcr
+spec:
+  containers:
+  - name: myapp-k8s-gcr
+    image: k8s.gcr.io/addon-resizer:1.8.4
+    imagePullPolicy: Always
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "50m"
+  - name: myapp-k8s-gcr-2
+    image: k8s.gcr.io/addon-resizer:1.8.4
+    imagePullPolicy: Always
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "50m"
