@@ -81,7 +81,7 @@ func init() {
 
 	RegisterReplaceStrategy("quay.io", "quay.azk8s.cn")
 	RegisterReplaceStrategy("gcr.io", "gcr.azk8s.cn")
-	RegisterReplaceStrategy("k8s.gcr.io", "registry.aliyuncs.com/google_containers")
+	RegisterReplaceStrategy("k8s.gcr.io", " gcr.azk8s.cn/google-containers")
 }
 
 // change init containers
