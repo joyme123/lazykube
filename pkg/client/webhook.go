@@ -19,6 +19,10 @@ import (
 	"k8s.io/api/admission/v1beta1"
 )
 
+const (
+	patchedLabel string = "lazykube/patched"
+)
+
 var (
 	runtimeScheme = runtime.NewScheme()
 	codecs        = serializer.NewCodecFactory(runtimeScheme)
@@ -84,37 +88,62 @@ func init() {
 	RegisterReplaceStrategy("k8s.gcr.io", " gcr.azk8s.cn/google-containers")
 }
 
-// change init containers
-
-// change containers
-func createPatch(pod *corev1.Pod) ([]byte, error) {
-	var patch = make([]patchOperation, 2)
+func patchContainers(pod *corev1.Pod) []patchOperation {
+	var patch = make([]patchOperation, 0)
 
 	// replace initContainers
 	for i := range pod.Spec.InitContainers {
 		pod.Spec.InitContainers[i].Image = replace(pod.Spec.InitContainers[i].Image)
 	}
-	patch[0].Op = "replace"
-	patch[0].Path = "/spec/initContainers"
-	// new, err := json.Marshal(pod.Spec.InitContainers)
-	// if err != nil {
-	// 	return []byte{}, fmt.Errorf("marshal initcontainers error: %v", err)
-	// }
-	patch[0].Value = pod.Spec.InitContainers
+
+	if pod.Spec.InitContainers != nil && len(pod.Spec.InitContainers) != 0 {
+		var initPatch patchOperation
+
+		initPatch.Op = "replace"
+		initPatch.Path = "/spec/initContainers"
+		initPatch.Value = pod.Spec.InitContainers
+
+		patch = append(patch, initPatch)
+	}
 
 	// replace containers
 	for i := range pod.Spec.Containers {
 		pod.Spec.Containers[i].Image = replace(pod.Spec.Containers[i].Image)
 	}
-	patch[1].Op = "replace"
-	patch[1].Path = "/spec/containers"
-	// new, err = json.Marshal(pod.Spec.Containers)
-	// if err != nil {
-	// 	return []byte{}, fmt.Errorf("marshal containers error: %v", err)
-	// }
-	patch[1].Value = pod.Spec.Containers
 
-	return json.Marshal(patch)
+	var containerPatch patchOperation
+	containerPatch.Op = "replace"
+	containerPatch.Path = "/spec/containers"
+	containerPatch.Value = pod.Spec.Containers
+
+	patch = append(patch, containerPatch)
+
+	return patch
+}
+
+func patchLabels(pod *corev1.Pod) patchOperation {
+	var patch patchOperation
+	patch.Op = "merge"
+	patch.Path = "/metadata/labels"
+
+	label := make(map[string]string, 0)
+	label[patchedLabel] = "true"
+
+	patch.Value = label
+
+	return patch
+}
+
+func createPatch(pod *corev1.Pod) ([]byte, error) {
+	var patches []patchOperation
+
+	containersPatches := patchContainers(pod)
+	patches = append(patches, containersPatches...)
+
+	labelsPatch := patchLabels(pod)
+	patches = append(patches, labelsPatch)
+
+	return json.Marshal(patches)
 }
 
 func (whsrv *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
@@ -203,11 +232,13 @@ func (whsrv *WebhookServer) serve(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("Can't encode response: %v", err)
 		http.Error(w, fmt.Sprintf("could not encode response: %v", err), http.StatusInternalServerError)
 	}
-	log.Infof("Ready to write response ...")
+	log.Infoln("Ready to write response ...")
 	if _, err := w.Write(resp); err != nil {
 		log.Errorf("Can't write response: %v", err)
 		http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
 	}
+
+	log.Infoln("mutate finished")
 }
 
 // Start 启动服务

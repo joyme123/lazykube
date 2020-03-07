@@ -1,6 +1,10 @@
 # lazykube
 
-auto download docker image from gcr.io or quay.io
+download image from:
+
+- gcr.io
+- quay.io
+- k8s.gcr.io
 
 # Deploy
 
