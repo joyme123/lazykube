@@ -134,7 +134,7 @@ func patchContainers(pod *corev1.Pod) []patchOperation {
 
 func patchLabels(pod *corev1.Pod) patchOperation {
 	var patch patchOperation
-	patch.Op = "merge"
+	patch.Op = "add"
 	patch.Path = "/metadata/labels"
 
 	label := make(map[string]string, 0)
