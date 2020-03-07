@@ -85,7 +85,18 @@ func init() {
 
 	RegisterReplaceStrategy("quay.io", "quay.azk8s.cn")
 	RegisterReplaceStrategy("gcr.io", "gcr.azk8s.cn")
-	RegisterReplaceStrategy("k8s.gcr.io", " gcr.azk8s.cn/google-containers")
+	RegisterReplaceStrategy("k8s.gcr.io", "gcr.azk8s.cn/google-containers")
+}
+
+// Check whether the pod need to be mutated
+func mutateRequired(pod *corev1.Pod) bool {
+	for key := range pod.Labels {
+		if key == patchedLabel {
+			return false
+		}
+	}
+
+	return true
 }
 
 func patchContainers(pod *corev1.Pod) []patchOperation {
@@ -162,7 +173,13 @@ func (whsrv *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 	log.Infof("AdmissionReview for Kind=%v, Namespace=%v (%v) UID=%v patchOperation=%v UserInfo=%v\n",
 		req.Kind, req.Namespace, req.Name, req.UID, req.Operation, req.UserInfo)
 
-	// TODO: determine whether to perform mutation
+	// determine whether to perform mutation
+	if !mutateRequired(&pod) {
+		log.Infof("Skipping mutation for %s/%s due to policy check \n", pod.Namespace, pod.Name)
+		return &v1beta1.AdmissionResponse{
+			Allowed: true,
+		}
+	}
 
 	patchBytes, err := createPatch(&pod)
 	if err != nil {
