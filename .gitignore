@@ -1,3 +1,5 @@
 build
 vendor
 go.sum
+delete.py
+pods.txt

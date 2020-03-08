@@ -151,8 +151,8 @@ func createPatch(pod *corev1.Pod) ([]byte, error) {
 	containersPatches := patchContainers(pod)
 	patches = append(patches, containersPatches...)
 
-	labelsPatch := patchLabels(pod)
-	patches = append(patches, labelsPatch)
+	// labelsPatch := patchLabels(pod)
+	// patches = append(patches, labelsPatch)
 
 	return json.Marshal(patches)
 }
