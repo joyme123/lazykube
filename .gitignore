@@ -3,3 +3,4 @@ vendor
 go.sum
 delete.py
 pods.txt
+deployment/mutatingwebhook-ca-bundle.yaml
