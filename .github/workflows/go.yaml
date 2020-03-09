@@ -43,7 +43,9 @@ jobs:
         fi
 
     - name: Build
-      run: CGO_ENABLED=0 go build -ldflags "-B 0x$(shell head -c20 /dev/urandom|od -An -tx1|tr -d ' \n') -X main.Version=${GITHUB_REF}(${GITHUB_SHA})" -v -o ~/.cache/lazykube ./cmd/lazykube
+      run: |
+        mkdir build
+        CGO_ENABLED=0 go build -ldflags "-B 0x$(shell head -c20 /dev/urandom|od -An -tx1|tr -d ' \n') -X main.Version=${GITHUB_REF}(${GITHUB_SHA})" -v -o build/lazykube ./cmd/lazykube
     
     - name: unit-test
       run: bash script/unit-test.sh
@@ -54,7 +56,6 @@ jobs:
         name: joyme/lazykube
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-      run: mkdir build && mv ~/.cache/lazykube build/lazykube
 
     - uses: engineerd/setup-kind@v0.3.0
 
