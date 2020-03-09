@@ -5,7 +5,7 @@ metadata:
   labels:
     app: lazykube
 webhooks:
-  - name: lazykube
+  - name: lazykube.myway5.com
     clientConfig:
       service:
         name: lazykube-webhook-svc

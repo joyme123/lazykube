@@ -9,7 +9,7 @@ cat deployment/mutatingwebhook.yaml | \
     deployment/webhook-patch-ca-bundle.sh > \
     deployment/mutatingwebhook-ca-bundle.yaml
 
-kubectl create -f deployment/deployment.yaml
+kubectl create -f deployment/deployment-latest.yaml
 kubectl create -f deployment/mutatingwebhook-ca-bundle.yaml
 
 # 测试创建pod
