@@ -3,7 +3,7 @@
 KFCTL_URL="https://github.com/kubeflow/kfctl/releases/download/v1.0/kfctl_v1.0-0-g94c35cf_linux.tar.gz"
 DIR=$(mktemp -d)
 echo "temp path: ${DIR}"
-curl -x 127.0.0.1:8118 -LJ -o $DIR/kfctl.tar.gz $KFCTL_URL
+curl -LJ -o $DIR/kfctl.tar.gz $KFCTL_URL
 cd $DIR
 tar -xvf kfctl.tar.gz
 
