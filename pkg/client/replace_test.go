@@ -19,7 +19,7 @@ func Test_replace(t *testing.T) {
 	}{
 		{"quay.io/dexidp/dex:v2.10.0", "quay.azk8s.cn/dexidp/dex:v2.10.0"},
 		{"gcr.io/dexidp/dex:v2.10.0", "gcr.azk8s.cn/dexidp/dex:v2.10.0"},
-		{"k8s.gcr.io/dexidp/dex:v2.10.0", "registry.aliyuncs.com/google_containers/dexidp/dex:v2.10.0"},
+		{"k8s.gcr.io/dex:v2.10.0", "registry.aliyuncs.com/google_containers/dex:v2.10.0"},
 		{"docker.io/dexidp/dex:v2.10.0", "dockerhub.azk8s.cn/dexidp/dex:v2.10.0"},
 		{"dexidp/dex:v2.10.0", "dockerhub.azk8s.cn/dexidp/dex:v2.10.0"},
 		{"dex:v2.10.0", "dockerhub.azk8s.cn/library/dex:v2.10.0"},

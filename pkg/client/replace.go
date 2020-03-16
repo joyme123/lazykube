@@ -50,19 +50,19 @@ func replace(image string) string {
 				log.Infof("old image: %s, new image: %s\n", image, newImg)
 				return newImg
 			}
-
+			break
 		case DefaultReplace:
 			arr := strings.Split(image, "/")
 			if len(arr) == 1 { // case similar: mysql:5.6
 				newImg := s.Value + "/library/" + image
 				log.Infof("old image: %s, new image: %s\n", image, newImg)
 				return newImg
-			} else if len(arr) == 2 { // case similar: joyme/mysql:5.6
+			} else if len(arr) == 2 && !strings.ContainsAny(arr[0], ".") { // case similar: joyme/mysql:5.6
 				newImg := s.Value + "/" + image
 				log.Infof("old image: %s, new image: %s\n", image, newImg)
 				return newImg
 			}
-
+			break
 		default:
 			log.Warnf("不支持的替换模式, mode: %s, value: %s\n", s.Mode, s.Value)
 		}
