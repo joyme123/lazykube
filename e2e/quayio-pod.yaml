@@ -4,13 +4,14 @@ metadata:
   name: myapp-quay
   labels:
     name: myapp-quay
+    lazykubetest: e2e-test
 spec:
   initContainers:
     - name: init
       image: quay.io/dexidp/dex:v2.10.0
       imagePullPolicy: Always
   containers:
-  - name: myapp-quay
+  - name: main
     image: quay.io/dexidp/dex:v2.10.0
     imagePullPolicy: Always
     resources:

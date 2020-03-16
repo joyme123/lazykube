@@ -1,0 +1,347 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    sidecar.istio.io/status: '{"version":"1cdb312e0b39910b7401fa37c42113f6436e281598036cb126f9692adebf1545","initContainers":["istio-init"],"containers":["istio-proxy"],"volumes":["istio-envoy","podinfo","istiod-ca-cert"],"imagePullSecrets":null}'
+  creationTimestamp: "2020-03-16T06:23:34Z"
+  labels:
+    name: myapp-gcr
+    security.istio.io/tlsMode: istio
+    service.istio.io/canonical-name: myapp-gcr
+    service.istio.io/canonical-revision: latest
+  name: myapp-gcr
+  namespace: default
+  resourceVersion: "659437"
+  selfLink: /api/v1/namespaces/default/pods/myapp-gcr
+  uid: 5fe6db11-fbd0-43f6-9ece-7dcced94e8f2
+spec:
+  containers:
+  - image: gcr.azk8s.cn/kubernetes-helm/tiller:v2.13.1
+    imagePullPolicy: Always
+    name: myapp-gcr
+    resources:
+      limits:
+        cpu: 50m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-svx8w
+      readOnly: true
+  - args:
+    - proxy
+    - sidecar
+    - --domain
+    - $(POD_NAMESPACE).svc.cluster.local
+    - --configPath
+    - /etc/istio/proxy
+    - --binaryPath
+    - /usr/local/bin/envoy
+    - --serviceCluster
+    - myapp-gcr.default
+    - --drainDuration
+    - 45s
+    - --parentShutdownDuration
+    - 1m0s
+    - --discoveryAddress
+    - istiod.istio-system.svc:15012
+    - --zipkinAddress
+    - zipkin.istio-system:9411
+    - --proxyLogLevel=warning
+    - --proxyComponentLogLevel=misc:error
+    - --connectTimeout
+    - 10s
+    - --proxyAdminPort
+    - "15000"
+    - --concurrency
+    - "2"
+    - --controlPlaneAuthPolicy
+    - NONE
+    - --dnsRefreshRate
+    - 300s
+    - --statusPort
+    - "15020"
+    - --trust-domain=cluster.local
+    - --controlPlaneBootstrap=false
+    env:
+    - name: JWT_POLICY
+      value: first-party-jwt
+    - name: PILOT_CERT_PROVIDER
+      value: istiod
+    - name: CA_ADDR
+      value: istio-pilot.istio-system.svc:15012
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.name
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    - name: INSTANCE_IP
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: status.podIP
+    - name: SERVICE_ACCOUNT
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: spec.serviceAccountName
+    - name: HOST_IP
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: status.hostIP
+    - name: ISTIO_META_POD_PORTS
+      value: |-
+        [
+        ]
+    - name: ISTIO_META_CLUSTER_ID
+      value: Kubernetes
+    - name: ISTIO_META_POD_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.name
+    - name: ISTIO_META_CONFIG_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    - name: ISTIO_META_INTERCEPTION_MODE
+      value: REDIRECT
+    - name: ISTIO_META_WORKLOAD_NAME
+      value: myapp-gcr
+    - name: ISTIO_META_OWNER
+      value: kubernetes://apis/v1/namespaces/default/pods/myapp-gcr
+    - name: ISTIO_META_MESH_ID
+      value: cluster.local
+    image: dockerhub.azk8s.cn/istio/proxyv2:1.5.0
+    imagePullPolicy: IfNotPresent
+    name: istio-proxy
+    ports:
+    - containerPort: 15090
+      name: http-envoy-prom
+      protocol: TCP
+    readinessProbe:
+      failureThreshold: 30
+      httpGet:
+        path: /healthz/ready
+        port: 15020
+        scheme: HTTP
+      initialDelaySeconds: 1
+      periodSeconds: 2
+      successThreshold: 1
+      timeoutSeconds: 1
+    resources:
+      limits:
+        cpu: "2"
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsGroup: 1337
+      runAsNonRoot: true
+      runAsUser: 1337
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/istio
+      name: istiod-ca-cert
+    - mountPath: /etc/istio/proxy
+      name: istio-envoy
+    - mountPath: /etc/istio/pod
+      name: podinfo
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-svx8w
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  imagePullSecrets:
+  - name: regsecret
+  initContainers:
+  - image: gcr.azk8s.cn/kubernetes-helm/tiller:v2.13.1
+    imagePullPolicy: Always
+    name: init
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-svx8w
+      readOnly: true
+  - command:
+    - istio-iptables
+    - -p
+    - "15001"
+    - -z
+    - "15006"
+    - -u
+    - "1337"
+    - -m
+    - REDIRECT
+    - -i
+    - '*'
+    - -x
+    - ""
+    - -b
+    - '*'
+    - -d
+    - 15090,15020
+    image: dockerhub.azk8s.cn/istio/proxyv2:1.5.0
+    imagePullPolicy: IfNotPresent
+    name: istio-init
+    resources:
+      limits:
+        cpu: 100m
+        memory: 50Mi
+      requests:
+        cpu: 10m
+        memory: 10Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        add:
+        - NET_ADMIN
+        - NET_RAW
+        drop:
+        - ALL
+      privileged: false
+      readOnlyRootFilesystem: false
+      runAsGroup: 0
+      runAsNonRoot: false
+      runAsUser: 0
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-svx8w
+      readOnly: true
+  nodeName: minikube
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1337
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: default-token-svx8w
+    secret:
+      defaultMode: 420
+      secretName: default-token-svx8w
+  - emptyDir:
+      medium: Memory
+    name: istio-envoy
+  - downwardAPI:
+      defaultMode: 420
+      items:
+      - fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.labels
+        path: labels
+      - fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.annotations
+        path: annotations
+    name: podinfo
+  - configMap:
+      defaultMode: 420
+      name: istio-ca-root-cert
+    name: istiod-ca-cert
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2020-03-16T06:23:34Z"
+    message: 'containers with incomplete status: [init istio-init]'
+    reason: ContainersNotInitialized
+    status: "False"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2020-03-16T06:23:34Z"
+    message: 'containers with unready status: [myapp-gcr istio-proxy]'
+    reason: ContainersNotReady
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2020-03-16T06:23:34Z"
+    message: 'containers with unready status: [myapp-gcr istio-proxy]'
+    reason: ContainersNotReady
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2020-03-16T06:23:34Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - image: dockerhub.azk8s.cn/istio/proxyv2:1.5.0
+    imageID: ""
+    lastState: {}
+    name: istio-proxy
+    ready: false
+    restartCount: 0
+    started: false
+    state:
+      waiting:
+        reason: PodInitializing
+  - image: gcr.azk8s.cn/kubernetes-helm/tiller:v2.13.1
+    imageID: ""
+    lastState: {}
+    name: myapp-gcr
+    ready: false
+    restartCount: 0
+    started: false
+    state:
+      waiting:
+        reason: PodInitializing
+  hostIP: 192.168.99.107
+  initContainerStatuses:
+  - containerID: docker://d4e4f08ba93c0d840ec5b121a499fea9fb22b6a8ba456583623162ce9ea0effb
+    image: gcr.azk8s.cn/kubernetes-helm/tiller:v2.13.1
+    imageID: docker-pullable://gcr.azk8s.cn/kubernetes-helm/tiller@sha256:d52b34a9f9aeec1cf74155ca51fcbb5d872a705914565c782be4531790a4ee0e
+    lastState: {}
+    name: init
+    ready: false
+    restartCount: 0
+    state:
+      running:
+        startedAt: "2020-03-16T06:23:39Z"
+  - image: dockerhub.azk8s.cn/istio/proxyv2:1.5.0
+    imageID: ""
+    lastState: {}
+    name: istio-init
+    ready: false
+    restartCount: 0
+    state:
+      waiting:
+        reason: PodInitializing
+  phase: Pending
+  podIP: 172.17.0.18
+  podIPs:
+  - ip: 172.17.0.18
+  qosClass: Burstable
+  startTime: "2020-03-16T06:23:34Z"

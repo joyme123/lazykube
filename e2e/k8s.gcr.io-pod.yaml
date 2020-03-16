@@ -4,16 +4,17 @@ metadata:
   name: myapp-k8s-gcr
   labels:
     name: myapp-k8s-gcr
+    lazykubetest: e2e-test
 spec:
   containers:
-  - name: myapp-k8s-gcr
+  - name: main
     image: k8s.gcr.io/addon-resizer:1.8.4
     imagePullPolicy: Always
     resources:
       limits:
         memory: "128Mi"
         cpu: "50m"
-  - name: myapp-k8s-gcr-2
+  - name: main2
     image: k8s.gcr.io/addon-resizer:1.8.4
     imagePullPolicy: Always
     resources:

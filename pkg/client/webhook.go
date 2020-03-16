@@ -87,6 +87,7 @@ func init() {
 	RegisterReplaceStrategy("gcr.io", PrefixReplace, "gcr.azk8s.cn")
 	RegisterReplaceStrategy("k8s.gcr.io", PrefixReplace, "gcr.azk8s.cn/google-containers")
 	RegisterReplaceStrategy("docker.io", PrefixReplace, "dockerhub.azk8s.cn")
+	RegisterReplaceStrategy("default", DefaultReplace, "dockerhub.azk8s.cn")
 }
 
 // Check whether the pod need to be mutated
