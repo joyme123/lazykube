@@ -93,11 +93,11 @@ then
     echo "docker.io pod container test failed, result is ${image}, expect is ${expect}"
     exit 1
 fi
-kubectl delete -f e2e/docker.io-pod.yaml
+kubectl delete -f e2e/docker.io-pod.yaml >> /dev/null
 
 # 测试 mysql:5.6 这种格式的镜像
 
-kubectl create -f e2e/default-pod.yaml
+kubectl create -f e2e/default-pod.yaml >> /dev/null
 image=$(kubectl get pods myapp-docker-default -o=jsonpath='{.spec.containers[0].image}')
 expect="dockerhub.azk8s.cn/library/mysql:5.6"
 if [[ $image != "$expect" ]]
@@ -105,11 +105,11 @@ then
     echo "default pod container test failed, result is ${image}, expect is ${expect}"
     exit 1
 fi
-kubectl delete -f e2e/default-pod.yaml
+kubectl delete -f e2e/default-pod.yaml >> /dev/null
 
 # 测试 library/mysql:5.6 这种格式的镜像
 
-kubectl create -f e2e/default-pod-2.yaml
+kubectl create -f e2e/default-pod-2.yaml >> /dev/null
 image=$(kubectl get pods myapp-docker-default-2 -o=jsonpath='{.spec.containers[0].image}')
 expect="dockerhub.azk8s.cn/library/mysql:5.6"
 if [[ $image != "$expect" ]]
@@ -117,10 +117,10 @@ then
     echo "default 2 pod container test failed, result is ${image}, expect is ${expect}"
     exit 1
 fi
-kubectl delete -f e2e/default-pod-2.yaml
+kubectl delete -f e2e/default-pod-2.yaml >> /dev/null
 
 # 测试dashboard
-kubectl create -f e2e/dashboard.yaml
+kubectl create -f e2e/dashboard.yaml >> /dev/null
 image=$(kubectl -n kube-system get pods -l k8s-app=kubernetes-dashboard -o=jsonpath='{.items[0].spec.containers[0].image}')
 expect="gcr.azk8s.cn/google-containers/kubernetes-dashboard-amd64:v1.10.1"
 if [[ $image != "$expect" ]]
@@ -128,9 +128,9 @@ then
     echo "dashboard test failed, result is ${image}, expect is ${expect}"
     exit 1
 fi
-kubectl delete -f e2e/dashboard.yaml
+kubectl delete -f e2e/dashboard.yaml >> /dev/null
 
 # 测试卸载 lazykube
-kubectl delete -f deployment/deployment-latest.yaml && \
-  kubectl delete secret lazykube-webhook-certs && \
-  kubectl delete mutatingwebhookconfiguration lazykube-webhook-cfg
+kubectl delete -f deployment/deployment-latest.yaml >> /dev/null && \
+  kubectl delete secret lazykube-webhook-certs >> /dev/null && \
+  kubectl delete mutatingwebhookconfiguration lazykube-webhook-cfg >> /dev/null
