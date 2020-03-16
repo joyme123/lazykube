@@ -1,5 +1,7 @@
 # lazykube
 
+![Go](https://github.com/joyme123/lazykube/workflows/Go/badge.svg?branch=master)
+
 自动替换墙外镜像的下载地址，默认替换规则有：
 
 - gcr.io -> gcr.azk8s.cn
