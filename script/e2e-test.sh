@@ -17,5 +17,5 @@ kubectl create -f e2e/gcr.io-pod.yaml
 kubectl create -f e2e/quayio-pod.yaml
 kubectl create -f e2e/k8s.gcr.io-pod.yaml
 
-# 测试kubeflow
-e2e/kubeflow/deploy.sh
+# 测试dashboard
+kubectl create -f e2e/dashboard.yaml

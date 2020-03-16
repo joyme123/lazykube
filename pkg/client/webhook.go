@@ -83,9 +83,10 @@ func init() {
 	// defaulting with webhooks
 	_ = v1.AddToScheme(runtimeScheme)
 
-	RegisterReplaceStrategy("quay.io", "quay.azk8s.cn")
-	RegisterReplaceStrategy("gcr.io", "gcr.azk8s.cn")
-	RegisterReplaceStrategy("k8s.gcr.io", "gcr.azk8s.cn/google-containers")
+	RegisterReplaceStrategy("quay.io", PrefixReplace, "quay.azk8s.cn")
+	RegisterReplaceStrategy("gcr.io", PrefixReplace, "gcr.azk8s.cn")
+	RegisterReplaceStrategy("k8s.gcr.io", PrefixReplace, "gcr.azk8s.cn/google-containers")
+	RegisterReplaceStrategy("docker.io", PrefixReplace, "dockerhub.azk8s.cn")
 }
 
 // Check whether the pod need to be mutated
