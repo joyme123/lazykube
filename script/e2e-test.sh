@@ -18,7 +18,7 @@ kubectl create -f deployment/deployment-latest.yaml >> /dev/null && \
 while true
 do
 
-if [[ $(kubectl get pods  -l app=lazykube | grep Running) != "" ]]
+if [[ $(kubectl -n kube-system get pods  -l app=lazykube | grep Running) != "" ]]
 then
     echo "lazykube 已经启动"
     break
