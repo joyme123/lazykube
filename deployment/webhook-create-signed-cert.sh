@@ -48,7 +48,7 @@ done
 
 [ -z ${service} ] && service=lazykube-webhook-svc
 [ -z ${secret} ] && secret=lazykube-webhook-certs
-[ -z ${namespace} ] && namespace=default
+[ -z ${namespace} ] && namespace=kube-system
 
 if [ ! -x "$(command -v openssl)" ]; then
     echo "openssl not found"
