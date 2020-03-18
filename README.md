@@ -23,7 +23,7 @@ $ cd lazykube/deployment
 $ ./webhook-create-signed-cert.sh \
     --service lazykube-webhook-svc \
     --secret lazykube-webhook-certs \
-    --namespace default
+    --namespace kube-system
 $ cat mutatingwebhook.yaml | \
     ./webhook-patch-ca-bundle.sh > \
     mutatingwebhook-ca-bundle.yaml
@@ -36,6 +36,6 @@ $ kubectl create -f deployment-latest.yaml && \
 
 ```
 $ kubectl delete -f deployment-latest.yaml && \
-  kubectl delete secret lazykube-webhook-certs && \
+  kubectl -n kube-system delete secret lazykube-webhook-certs && \
   kubectl delete mutatingwebhookconfiguration lazykube-webhook-cfg
 ```

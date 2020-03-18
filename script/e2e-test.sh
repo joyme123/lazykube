@@ -4,7 +4,7 @@
 ./deployment/webhook-create-signed-cert.sh \
     --service lazykube-webhook-svc \
     --secret lazykube-webhook-certs \
-    --namespace default >> /dev/null
+    --namespace kube-system >> /dev/null
 
 cat deployment/mutatingwebhook.yaml | \
     deployment/webhook-patch-ca-bundle.sh > \
@@ -132,5 +132,5 @@ kubectl delete -f e2e/dashboard.yaml >> /dev/null
 
 # 测试卸载 lazykube
 kubectl delete -f deployment/deployment-latest.yaml >> /dev/null && \
-  kubectl delete secret lazykube-webhook-certs >> /dev/null && \
+  kubectl -n kube-system delete secret lazykube-webhook-certs >> /dev/null && \
   kubectl delete mutatingwebhookconfiguration lazykube-webhook-cfg >> /dev/null
