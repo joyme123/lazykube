@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: lazykube
-          image: registry.cn-shanghai.aliyuncs.com/myshare/lazykube:latest
+          image: registry.cn-hongkong.aliyuncs.com/myshare/lazykube:latest
           imagePullPolicy: Always
           args:
             - -tlsCertFile=/etc/webhook/certs/cert.pem

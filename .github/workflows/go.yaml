@@ -53,10 +53,10 @@ jobs:
     - name: Publish to Registry
       uses: HurricanKai/Publish-Docker-Github-Action@master
       with:
-        name: registry.cn-shanghai.aliyuncs.com/myshare/lazykube
+        name: registry.cn-hongkong.aliyuncs.com/myshare/lazykube
         username: ${{ secrets.ALIYUN_DOCKER_USERNAME }}
         password: ${{ secrets.ALIYUN_DOCKER_PASSWORD }}
-        registry: registry.cn-shanghai.aliyuncs.com
+        registry: registry.cn-hongkong.aliyuncs.com
 
     - uses: engineerd/setup-kind@v0.3.0
 
