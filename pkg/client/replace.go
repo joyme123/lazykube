@@ -1,10 +1,21 @@
 package client
 
 import (
+	"encoding/json"
 	"strings"
 
-	"github.com/prometheus/common/log"
+	log "github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
 )
+
+var globalConfig = &LazykubeConfig{
+	ReplaceStrategies: make([]ReplaceStrategy, 0),
+}
+
+// LazykubeConfig 配置信息
+type LazykubeConfig struct {
+	ReplaceStrategies []ReplaceStrategy `yaml:"replaceStrategies"`
+}
 
 // ReplaceMode 替换模式
 type ReplaceMode string
@@ -19,30 +30,40 @@ const (
 
 // ReplaceStrategy 替换策略
 type ReplaceStrategy struct {
-	Mode  ReplaceMode
-	Value string
+	Case  string      `yaml:"case"`
+	Mode  ReplaceMode `yaml:"mode"`
+	Value string      `yaml:"value"`
 }
-
-// ReplaceStrategies 镜像地址替换策略
-type ReplaceStrategies map[string]ReplaceStrategy
-
-var strategies ReplaceStrategies
 
 // RegisterReplaceStrategy 注册镜像地址替换策略
-func RegisterReplaceStrategy(replace string, mode ReplaceMode, to string) {
-	if strategies == nil {
-		strategies = make(ReplaceStrategies, 0)
-	}
-	strategies[replace] = ReplaceStrategy{
+func (c *LazykubeConfig) RegisterReplaceStrategy(replace string, mode ReplaceMode, to string) {
+	c.ReplaceStrategies = append(c.ReplaceStrategies, ReplaceStrategy{
+		Case:  replace,
 		Mode:  mode,
 		Value: to,
-	}
+	})
 }
 
-// 根据替换策略，替换镜像地址
-func replace(image string) string {
-	for replace, s := range strategies {
+// UpdateConfig 更新替换策略
+func (c *LazykubeConfig) UpdateConfig(cm *corev1.ConfigMap) error {
+	data := cm.BinaryData["config"]
+	if data == nil {
+		return nil
+	}
+	var tmpConfig LazykubeConfig
+	err := json.Unmarshal(data, &tmpConfig)
+	if err != nil {
+		return err
+	}
 
+	*c = tmpConfig
+	return nil
+}
+
+// Replace 根据替换策略，替换镜像地址
+func (c *LazykubeConfig) Replace(image string) string {
+	for _, s := range c.ReplaceStrategies {
+		replace := s.Case
 		switch s.Mode {
 		case PrefixReplace:
 			if strings.HasPrefix(image, replace) {
@@ -53,11 +74,11 @@ func replace(image string) string {
 			break
 		case DefaultReplace:
 			arr := strings.Split(image, "/")
-			if len(arr) == 1 { // case similar: mysql:5.6
+			if len(arr) == 1 { // case : mysql:5.6
 				newImg := s.Value + "/library/" + image
 				log.Infof("old image: %s, new image: %s\n", image, newImg)
 				return newImg
-			} else if len(arr) == 2 && !strings.ContainsAny(arr[0], ".") { // case similar: joyme/mysql:5.6
+			} else if len(arr) == 2 && !strings.ContainsAny(arr[0], ".") { // case: joyme/mysql:5.6
 				newImg := s.Value + "/" + image
 				log.Infof("old image: %s, new image: %s\n", image, newImg)
 				return newImg

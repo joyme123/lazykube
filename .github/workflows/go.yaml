@@ -51,12 +51,13 @@ jobs:
       run: bash script/unit-test.sh
     
     - name: Publish to Registry
-      uses: HurricanKai/Publish-Docker-Github-Action@master
+      uses: elgohr/Publish-Docker-Github-Action@master
       with:
         name: registry.cn-hongkong.aliyuncs.com/myshare/lazykube
         username: ${{ secrets.ALIYUN_DOCKER_USERNAME }}
         password: ${{ secrets.ALIYUN_DOCKER_PASSWORD }}
         registry: registry.cn-hongkong.aliyuncs.com
+        tag_names: true
 
     - uses: engineerd/setup-kind@v0.3.0
 

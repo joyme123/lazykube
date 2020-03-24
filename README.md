@@ -1,5 +1,7 @@
 # lazykube
 
+[![Language grade: Go](https://img.shields.io/lgtm/grade/go/g/joyme123/lazykube.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/joyme123/lazykube/context:go)
+
 ![Go](https://github.com/joyme123/lazykube/workflows/Go/badge.svg?branch=master)
 
 自动替换墙外镜像的下载地址，默认替换规则有：

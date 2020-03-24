@@ -7,11 +7,11 @@ import (
 )
 
 func Test_replace(t *testing.T) {
-	RegisterReplaceStrategy("quay.io", PrefixReplace, "quay.azk8s.cn")
-	RegisterReplaceStrategy("gcr.io", PrefixReplace, "gcr.azk8s.cn")
-	RegisterReplaceStrategy("k8s.gcr.io", PrefixReplace, "registry.aliyuncs.com/google_containers")
-	RegisterReplaceStrategy("docker.io", PrefixReplace, "dockerhub.azk8s.cn")
-	RegisterReplaceStrategy("default", DefaultReplace, "dockerhub.azk8s.cn")
+	globalConfig.RegisterReplaceStrategy("quay.io", PrefixReplace, "quay.azk8s.cn")
+	globalConfig.RegisterReplaceStrategy("gcr.io", PrefixReplace, "gcr.azk8s.cn")
+	globalConfig.RegisterReplaceStrategy("k8s.gcr.io", PrefixReplace, "registry.aliyuncs.com/google_containers")
+	globalConfig.RegisterReplaceStrategy("docker.io", PrefixReplace, "dockerhub.azk8s.cn")
+	globalConfig.RegisterReplaceStrategy("default", DefaultReplace, "dockerhub.azk8s.cn")
 
 	testcases := []struct {
 		image  string
@@ -26,7 +26,7 @@ func Test_replace(t *testing.T) {
 	}
 
 	for row, testcase := range testcases {
-		acturl := replace(testcase.image)
+		acturl := globalConfig.Replace(testcase.image)
 		assert.Equal(t, testcase.expect, acturl, "testcase %d failed", row)
 	}
 }
