@@ -57,6 +57,7 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         tag: dev
+        include pull requests: true
 
     - uses: engineerd/setup-kind@v0.3.0
 
