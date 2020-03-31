@@ -10,7 +10,7 @@ cat deployment/mutatingwebhook.yaml | \
     deployment/webhook-patch-ca-bundle.sh > \
     deployment/mutatingwebhook-ca-bundle.yaml
 
-kubectl create -f deployment/deployment-latest.yaml >> /dev/null && \
+kubectl create -f deployment/deployment-dev.yaml >> /dev/null && \
     kubectl create -f deployment/mutatingwebhook-ca-bundle.yaml >> /dev/null
 
 # 等待 lazykube 启动
@@ -157,6 +157,6 @@ fi
 kubectl delete -f e2e/docker.io-pod.yaml >> /dev/null
 
 # 测试卸载 lazykube
-kubectl delete -f deployment/deployment-latest.yaml >> /dev/null && \
+kubectl delete -f deployment/deployment-dev.yaml >> /dev/null && \
   kubectl -n kube-system delete secret lazykube-webhook-certs >> /dev/null && \
   kubectl delete mutatingwebhookconfiguration lazykube-webhook-cfg >> /dev/null

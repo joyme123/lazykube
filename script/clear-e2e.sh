@@ -1,6 +1,6 @@
 #!/bin/bash
 
-kubectl delete -f deployment/deployment-latest.yaml && \
+kubectl delete -f deployment/deployment-dev.yaml && \
   kubectl delete secret lazykube-webhook-certs && \
   kubectl delete mutatingwebhookconfiguration lazykube-webhook-cfg
 

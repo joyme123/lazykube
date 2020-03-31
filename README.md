@@ -30,14 +30,14 @@ $ cat mutatingwebhook.yaml | \
     ./webhook-patch-ca-bundle.sh > \
     mutatingwebhook-ca-bundle.yaml
 
-$ kubectl create -f deployment-latest.yaml && \
+$ kubectl create -f deployment-dev.yaml && \
   kubectl create -f mutatingwebhook-ca-bundle.yaml
 ```
 
 卸载:
 
 ```
-$ kubectl delete -f deployment-latest.yaml && \
+$ kubectl delete -f deployment-dev.yaml && \
   kubectl -n kube-system delete secret lazykube-webhook-certs && \
   kubectl delete mutatingwebhookconfiguration lazykube-webhook-cfg
 ```
