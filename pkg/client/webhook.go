@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
@@ -15,12 +17,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"k8s.io/api/admission/v1beta1"
+	restclient "k8s.io/client-go/rest"
 )
 
 const (
 	patchedLabel string = "lazykube/patched"
+	configName   string = "lazykube-config"
 )
 
 var (
@@ -83,11 +90,12 @@ func init() {
 	// defaulting with webhooks
 	_ = v1.AddToScheme(runtimeScheme)
 
-	RegisterReplaceStrategy("quay.io", PrefixReplace, "quay.azk8s.cn")
-	RegisterReplaceStrategy("gcr.io", PrefixReplace, "gcr.azk8s.cn")
-	RegisterReplaceStrategy("k8s.gcr.io", PrefixReplace, "gcr.azk8s.cn/google-containers")
-	RegisterReplaceStrategy("docker.io", PrefixReplace, "dockerhub.azk8s.cn")
-	RegisterReplaceStrategy("default", DefaultReplace, "dockerhub.azk8s.cn")
+	// default replace strategy, avoid lack of configmap
+	globalConfig.RegisterReplaceStrategy("quay.io", PrefixReplace, "quay.azk8s.cn")
+	globalConfig.RegisterReplaceStrategy("gcr.io", PrefixReplace, "gcr.azk8s.cn")
+	globalConfig.RegisterReplaceStrategy("k8s.gcr.io", PrefixReplace, "gcr.azk8s.cn/google-containers")
+	globalConfig.RegisterReplaceStrategy("docker.io", PrefixReplace, "dockerhub.azk8s.cn")
+	globalConfig.RegisterReplaceStrategy("default", DefaultReplace, "dockerhub.azk8s.cn")
 }
 
 // Check whether the pod need to be mutated
@@ -106,7 +114,7 @@ func patchContainers(pod *corev1.Pod) []patchOperation {
 
 	// replace initContainers
 	for i := range pod.Spec.InitContainers {
-		pod.Spec.InitContainers[i].Image = replace(pod.Spec.InitContainers[i].Image)
+		pod.Spec.InitContainers[i].Image = globalConfig.Replace(pod.Spec.InitContainers[i].Image)
 	}
 
 	if pod.Spec.InitContainers != nil && len(pod.Spec.InitContainers) != 0 {
@@ -121,7 +129,7 @@ func patchContainers(pod *corev1.Pod) []patchOperation {
 
 	// replace containers
 	for i := range pod.Spec.Containers {
-		pod.Spec.Containers[i].Image = replace(pod.Spec.Containers[i].Image)
+		pod.Spec.Containers[i].Image = globalConfig.Replace(pod.Spec.Containers[i].Image)
 	}
 
 	var containerPatch patchOperation
@@ -262,6 +270,23 @@ func (whsrv *WebhookServer) serve(w http.ResponseWriter, r *http.Request) {
 
 // Start 启动服务
 func (whsrv *WebhookServer) Start() error {
+	k8sCli, err := getKubeClient()
+	if err != nil {
+		return err
+	}
+
+	var namespace string
+	if namespace = os.Getenv("NAMESPACE"); namespace == "" {
+		return fmt.Errorf("NAMESPACE environment variable doesn't exist")
+	}
+
+	// 同步configmap
+	cmWatcher := NewConfigMapWatcher(k8sCli, namespace, configName, globalConfig)
+	if err := cmWatcher.SyncConfig(); err != nil {
+		return err
+	}
+	go cmWatcher.Run(context.TODO())
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/mutate", whsrv.serve)
 	whsrv.server.Handler = mux
@@ -277,4 +302,59 @@ func (whsrv *WebhookServer) Start() error {
 func (whsrv *WebhookServer) Shutdown() {
 	log.Info("Got OS shutdown signal, shutting down webhook server gracefully...")
 	whsrv.server.Shutdown(context.Background())
+}
+
+func homeDir() string {
+	if h := os.Getenv("HOME"); h != "" {
+		return h
+	}
+
+	return os.Getenv("USERPROFILE")
+}
+
+func getKubeConfig() (*restclient.Config, error) {
+	var kubeconfig string
+
+	// TODO: 目前临时从home下加载配置
+	home := homeDir()
+	kubeconfig = filepath.Join(home, ".kube", "config")
+
+	var config *restclient.Config
+
+	// 判断有没有文件
+	_, err := os.Stat(kubeconfig)
+	if err == nil {
+		// 使用kubeconfig中当前的上下文环境
+		log.Info("use local kube config file")
+		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// 使用 incluster 配置
+		log.Info("use in cluster config")
+		config, err = rest.InClusterConfig()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return config, nil
+}
+
+// getKubeClient 获取k8s的客户端
+func getKubeClient() (*kubernetes.Clientset, error) {
+
+	config, err := getKubeConfig()
+	if err != nil {
+		return nil, fmt.Errorf("get kubeconfig error: %v", err)
+	}
+
+	// create the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return clientset, err
 }

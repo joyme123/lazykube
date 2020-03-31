@@ -1,5 +1,7 @@
 # lazykube
 
+[![Language grade: Go](https://img.shields.io/lgtm/grade/go/g/joyme123/lazykube.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/joyme123/lazykube/context:go)
+
 ![Go](https://github.com/joyme123/lazykube/workflows/Go/badge.svg?branch=master)
 
 自动替换墙外镜像的下载地址，默认替换规则有：
@@ -39,3 +41,6 @@ $ kubectl delete -f deployment-latest.yaml && \
   kubectl -n kube-system delete secret lazykube-webhook-certs && \
   kubectl delete mutatingwebhookconfiguration lazykube-webhook-cfg
 ```
+
+支持 configmap 来自定义替换策略, 具体的 configmap 策略见部署文件中提供的配置。
+

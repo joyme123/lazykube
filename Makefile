@@ -29,4 +29,7 @@ image:
 imagePush:
 	docker push ${REPOSITORY}:${MAJOR_VERSION}-${GIT_VERSION}
 
+unittest:
+	bash script/unit-test.sh
+
 .PHONY: build

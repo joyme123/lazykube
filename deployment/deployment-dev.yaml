@@ -77,7 +77,7 @@ spec:
       serviceAccountName: lazykube
       containers:
         - name: lazykube
-          image: joyme/lazykube:latest
+          image: joyme/lazykube:dev
           imagePullPolicy: IfNotPresent
           args:
             - -tlsCertFile=/etc/webhook/certs/cert.pem
