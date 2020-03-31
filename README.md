@@ -42,4 +42,5 @@ $ kubectl delete -f deployment-latest.yaml && \
   kubectl delete mutatingwebhookconfiguration lazykube-webhook-cfg
 ```
 
-支持创建 configmap 来自定义替换策略
+支持 configmap 来自定义替换策略, 具体的 configmap 策略见部署文件中提供的配置。
+
