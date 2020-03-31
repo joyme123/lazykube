@@ -54,10 +54,10 @@ func (w *ConfigMapWatcher) Run(ctx context.Context) {
 	_, controller := cache.NewInformer(listWatch, &corev1.ConfigMap{}, 0, cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			if cm, ok := obj.(*corev1.ConfigMap); ok {
-				log.Infof("Detected ConfigMap update. Updating the controller config.")
+				log.Infof("Detected ConfigMap add. Updating the controller config.")
 				err := w.config.UpdateConfig(cm)
 				if err != nil {
-					log.Errorf("Update of config failed due to: %v", err)
+					log.Errorf("Update config failed due to: %v", err)
 				}
 			}
 		},
@@ -68,6 +68,7 @@ func (w *ConfigMapWatcher) Run(ctx context.Context) {
 			if oldCM.ResourceVersion == newCM.ResourceVersion {
 				return
 			}
+			log.Infof("Detected ConfigMap update. Updating the controller config.")
 			err := w.config.UpdateConfig(newCM)
 			if err != nil {
 				log.Errorf("Update of config failed due to: %v", err)

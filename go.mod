@@ -10,6 +10,7 @@ require (
 	github.com/spf13/viper v1.6.2 // indirect
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/build v0.0.0-20200323182918-2bf41cd70ade // indirect
+	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2
 	k8s.io/client-go v0.17.2

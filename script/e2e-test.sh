@@ -130,6 +130,32 @@ then
 fi
 kubectl delete -f e2e/dashboard.yaml >> /dev/null
 
+# 测试使用configmap替换规则
+kubectl apply -f e2e/e2e-cm.yaml
+sleep 10
+
+# 测试 mysql:5.6 这种格式的镜像
+kubectl create -f e2e/default-pod.yaml >> /dev/null
+image=$(kubectl get pods myapp-docker-default -o=jsonpath='{.spec.containers[0].image}')
+expect="test.azk8s.cn/library/mysql:5.6"
+if [[ $image != "$expect" ]]
+then
+    echo "default pod container test failed, result is ${image}, expect is ${expect}"
+    exit 1
+fi
+kubectl delete -f e2e/default-pod.yaml >> /dev/null
+
+# 测试创建 docker.io
+kubectl create -f e2e/docker.io-pod.yaml >> /dev/null
+image=$(kubectl get pods myapp-docker -o=jsonpath='{.spec.containers[0].image}')
+expect="test.azk8s.cn/library/mysql:5.6"
+if [[ $image != "$expect" ]]
+then
+    echo "docker.io pod container test failed, result is ${image}, expect is ${expect}"
+    exit 1
+fi
+kubectl delete -f e2e/docker.io-pod.yaml >> /dev/null
+
 # 测试卸载 lazykube
 kubectl delete -f deployment/deployment-latest.yaml >> /dev/null && \
   kubectl -n kube-system delete secret lazykube-webhook-certs >> /dev/null && \

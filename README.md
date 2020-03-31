@@ -41,3 +41,5 @@ $ kubectl delete -f deployment-latest.yaml && \
   kubectl -n kube-system delete secret lazykube-webhook-certs && \
   kubectl delete mutatingwebhookconfiguration lazykube-webhook-cfg
 ```
+
+支持创建 configmap 来自定义替换策略

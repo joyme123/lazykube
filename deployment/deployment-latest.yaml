@@ -1,3 +1,62 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lazykube
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: config-watcher
+  namespace: kube-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: config-watcher-binding
+    namespace: kube-system
+roleRef:
+    kind: Role
+    name: config-watcher
+    apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: lazykube
+    namespace: kube-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lazykube-config
+  namespace: kube-system
+data: 
+  config: |
+    replaceStrategies:
+      - case: "quay.io"
+        mode: prefix
+        value: "quay.azk8s.cn"
+      - case: "gcr.io"
+        mode: prefix
+        value: "gcr.azk8s.cn"
+      - case: "k8s.gcr.io"
+        mode: prefix
+        value: "gcr.azk8s.cn/google-containers"
+      - case: "docker.io"
+        mode: prefix
+        value: "dockerhub.azk8s.cn"
+      - case: "default"
+        mode: default
+        value: "dockerhub.azk8s.cn"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,10 +74,11 @@ spec:
       labels:
         app: lazykube
     spec:
+      serviceAccountName: lazykube
       containers:
         - name: lazykube
           image: registry.cn-hongkong.aliyuncs.com/myshare/lazykube:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           args:
             - -tlsCertFile=/etc/webhook/certs/cert.pem
             - -tlsKeyFile=/etc/webhook/certs/key.pem
@@ -34,6 +94,11 @@ spec:
               requests:
                 cpu: "0.5"
                 memory: "100Mi"
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
       volumes:
         - name: webhook-certs
           secret:

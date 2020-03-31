@@ -1,10 +1,10 @@
 package client
 
 import (
-	"encoding/json"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v1"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -37,6 +37,13 @@ type ReplaceStrategy struct {
 
 // RegisterReplaceStrategy 注册镜像地址替换策略
 func (c *LazykubeConfig) RegisterReplaceStrategy(replace string, mode ReplaceMode, to string) {
+	for i := range c.ReplaceStrategies {
+		if c.ReplaceStrategies[i].Case == replace {
+			c.ReplaceStrategies[i].Mode = mode
+			c.ReplaceStrategies[i].Value = to
+			return
+		}
+	}
 	c.ReplaceStrategies = append(c.ReplaceStrategies, ReplaceStrategy{
 		Case:  replace,
 		Mode:  mode,
@@ -46,12 +53,11 @@ func (c *LazykubeConfig) RegisterReplaceStrategy(replace string, mode ReplaceMod
 
 // UpdateConfig 更新替换策略
 func (c *LazykubeConfig) UpdateConfig(cm *corev1.ConfigMap) error {
-	data := cm.BinaryData["config"]
-	if data == nil {
-		return nil
-	}
+	data := cm.Data["config"]
+
+	log.Info("new config:", data)
 	var tmpConfig LazykubeConfig
-	err := json.Unmarshal(data, &tmpConfig)
+	err := yaml.Unmarshal([]byte(data), &tmpConfig)
 	if err != nil {
 		return err
 	}
