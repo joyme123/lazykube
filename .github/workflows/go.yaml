@@ -57,7 +57,6 @@ jobs:
         username: ${{ secrets.ALIYUN_DOCKER_USERNAME }}
         password: ${{ secrets.ALIYUN_DOCKER_PASSWORD }}
         registry: registry.cn-hongkong.aliyuncs.com
-        tag_names: true
 
     - uses: engineerd/setup-kind@v0.3.0
 
